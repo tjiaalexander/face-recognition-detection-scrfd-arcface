@@ -1,0 +1,9 @@
+# Python 3.11. Versi belum diverifikasi di sandbox pembuat; pin dengan `pip freeze` setelah berhasil di mesin Anda.
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27
+insightface==0.7.3
+onnxruntime>=1.17,<2   # ganti dengan onnxruntime-gpu bila memakai NVIDIA + CUDA (jangan pasang keduanya)
+opencv-python-headless>=4.9,<4.11
+numpy>=1.26,<2.0       # insightface 0.7.3 dapat bermasalah dengan NumPy 2
+cryptography>=42
+PyJWT>=2.8

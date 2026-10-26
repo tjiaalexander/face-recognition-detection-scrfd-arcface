@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Face Recognition System</title>
+  <link rel="stylesheet" href="css/app.css?v=20261018-1">
+</head>
+<body>
+  <!-- Login -->
+  <main id="login-screen" class="login" hidden>
+    <form id="login-form" class="login-card" autocomplete="on">
+      <h1>Masuk ke konsol wajah</h1>
+      <p class="muted">Data biometrik hanya dapat diakses oleh administrator.</p>
+      <label>Username<input name="username" autocomplete="username" required maxlength="64"></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+      <p id="login-error" class="error-text" role="alert" hidden></p>
+      <button class="btn primary" type="submit">Masuk</button>
+    </form>
+  </main>
+
+  <div id="app" class="shell" hidden>
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>Kelompok 1</div>
+      <nav id="nav" aria-label="Navigasi utama">
+        <button data-page="dashboard" class="nav-item">Dashboard</button>
+        <button data-page="recognition" class="nav-item">Face Recognition</button>
+        <button data-page="register" class="nav-item">Registrasi Wajah</button>
+        <button data-page="users" class="nav-item">Database Pengguna</button>
+      </nav>
+      <button id="logout" class="nav-item logout">Keluar</button>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <h2 id="page-title">Dashboard</h2>
+        <div class="pills">
+          <label class="model-picker" aria-label="Pilih model wajah">
+            <span>Model</span>
+            <select id="model-select"></select>
+          </label>
+          <span class="pill" id="pill-backend"><i></i><span>Backend</span></span>
+          <span class="pill" id="pill-camera"><i></i><span>Kamera mati</span></span>
+        </div>
+      </header>
+
+      <!-- Dashboard -->
+      <section id="page-dashboard" class="page" hidden>
+        <div class="stats">
+          <div class="stat"><span class="stat-value" id="stat-users">–</span><span class="muted">Pengguna terdaftar</span></div>
+          <div class="stat"><span class="stat-value" id="stat-templates">–</span><span class="muted">Template wajah</span></div>
+          <div class="stat"><span class="stat-value small" id="stat-model">–</span><span class="muted">Model aktif</span></div>
+          <div class="stat"><span class="stat-value" id="stat-threshold">–</span><span class="muted" id="stat-threshold-note">Threshold</span></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Status sistem</h3>
+            <dl class="status-list" id="status-list"></dl>
+          </div>
+          <div class="panel">
+            <h3>Pengenalan terbaru</h3>
+            <ul class="recent" id="recent-list"></ul>
+            <p class="empty" id="recent-empty">Belum ada wajah yang terkonfirmasi. Buka Face Recognition dan nyalakan kamera.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recognition -->
+      <section id="page-recognition" class="page" hidden>
+        <div class="grid-stage">
+          <div>
+            <div class="stage" id="rec-stage">
+              <video id="rec-video" playsinline muted></video>
+              <canvas id="rec-overlay"></canvas>
+              <div class="stage-empty" id="rec-empty">Kamera belum dinyalakan</div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="rec-start">Nyalakan kamera dan mulai</button>
+              <button class="btn" id="rec-stop" hidden>Hentikan</button>
+              <span class="muted" id="rec-conn">Terputus</span>
+            </div>
+            <p class="note">Kamera hanya aktif setelah Anda menekan tombol dan memberi izin di browser. Identitas baru dinyatakan terkonfirmasi setelah beberapa frame konsisten. Kecocokan wajah bukan bukti identitas mutlak, dan pemeriksaan liveness belum dikonfigurasi.</p>
+          </div>
+          <div class="panel">
+            <h3>Wajah terdeteksi</h3>
+            <ul class="faces" id="rec-faces"></ul>
+            <p class="empty" id="rec-faces-empty">Tidak ada wajah di frame.</p>
+            <dl class="meta">
+              <div><dt>Latensi</dt><dd id="rec-latency">–</dd></div>
+              <div><dt>Frame/detik</dt><dd id="rec-fps">–</dd></div>
+              <div><dt>Threshold</dt><dd id="rec-threshold">–</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <!-- Register -->
+      <section id="page-register" class="page" hidden>
+        <div class="grid-stage">
+          <div>
+            <div class="stage" id="reg-stage">
+              <video id="reg-video" playsinline muted></video>
+              <div class="stage-empty" id="reg-empty">Kamera belum dinyalakan</div>
+            </div>
+            <div class="actions">
+              <button class="btn" id="reg-camera">Nyalakan kamera</button>
+              <label class="btn" for="reg-upload-input" id="reg-upload-label">Upload file</label>
+              <input id="reg-upload-input" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple hidden>
+              <label class="btn" for="reg-upload-folder" id="reg-upload-folder-label">Upload folder</label>
+              <input id="reg-upload-folder" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple webkitdirectory directory hidden>
+              <button class="btn primary" id="reg-capture" disabled>Ambil sampel</button>
+              <button class="btn" id="reg-reset" disabled>Ulangi</button>
+            </div>
+            <div class="thumbs" id="reg-thumbs"></div>
+          </div>
+          <form class="panel form" id="reg-form" novalidate>
+            <h3>Data pengguna</h3>
+            <label>ID pengguna<input name="user_id" required maxlength="64" pattern="[A-Za-z0-9._\-]{1,64}" placeholder="mis. EMP-0042"></label>
+            <label>Nama lengkap<input name="name" required maxlength="100"></label>
+            <label class="check"><input type="checkbox" name="consent">
+              <span>Pemilik wajah telah diberi tahu dan menyetujui pengambilan serta penyimpanan data wajahnya (embedding, bukan foto). Data dapat dihapus kapan saja.</span></label>
+            <p class="muted" id="reg-hint">Ambil 5 sampel: hadap kamera, lalu sedikit ubah sudut kepala di antaranya.</p>
+            <ul class="report" id="reg-report"></ul>
+            <button class="btn primary" id="reg-submit" type="submit" disabled>Daftarkan pengguna</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Users -->
+      <section id="page-users" class="page" hidden>
+        <div class="toolbar">
+          <input type="search" id="user-search" placeholder="Cari nama atau ID" aria-label="Cari pengguna" maxlength="100">
+          <span class="muted" id="user-count"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Nama</th><th class="num">Template</th><th>Terdaftar</th><th></th></tr></thead>
+            <tbody id="user-rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="user-empty" hidden></p>
+        <div class="pager">
+          <button class="btn" id="user-prev">Sebelumnya</button>
+          <span class="muted" id="user-page"></span>
+          <button class="btn" id="user-next">Berikutnya</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <dialog id="dlg-detail"><form method="dialog" class="dialog">
+    <h3>Detail pengguna</h3><dl class="meta" id="detail-body"></dl>
+    <div class="dialog-actions"><button class="btn primary">Tutup</button></div></form></dialog>
+
+  <dialog id="dlg-delete"><form method="dialog" class="dialog">
+    <h3>Hapus pengguna?</h3>
+    <p id="delete-text"></p>
+    <div class="dialog-actions"><button class="btn" value="cancel">Batal</button>
+      <button class="btn danger" value="confirm">Hapus permanen</button></div></form></dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script type="module" src="js/app.js?v=20261018-1"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+Face Recognition System
+
+1. Latar Belakang
+Sistem ini dibuat untuk mengenali wajah manusia secara otomatis menggunakan teknologi computer vision, machine learning, dan face recognition. Pada era digital saat ini, kebutuhan akan sistem keamanan, autentikasi, dan otomatisasi identifikasi wajah semakin meningkat. Oleh karena itu, dibuatlah aplikasi berbasis web yang dapat mengenali wajah, menyimpan data pengguna, dan memproses pengenalan secara real-time.
+
+2. Tujuan
+- Mengenali wajah secara otomatis.
+- Mengelola data pengguna yang sudah terdaftar.
+- Menyimpan template wajah untuk proses identifikasi.
+- Mendeteksi kualitas sampel wajah agar hasil identifikasi lebih akurat.
+- Membuat sistem yang mudah digunakan melalui antarmuka web.
+- Mengoptimalkan keamanan dan efisiensi dalam proses autentikasi manusia.
+
+3. Model yang Digunakan
+Sistem ini menggunakan model face recognition berbasis InsightFace dengan format ONNX. InsightFace merupakan framework yang banyak digunakan dalam bidang face recognition karena performanya yang kuat dalam deteksi wajah, ekstraksi fitur, dan pencocokan identitas. Secara umum, model yang digunakan terdiri dari beberapa komponen utama, yaitu:
+
+- OpenCV: digunakan untuk pemrosesan citra dasar, seperti membaca frame dari kamera, mengubah ukuran gambar, serta menangani operasi awal pada gambar.
+- InsightFace: digunakan sebagai engine utama dalam deteksi wajah dan ekstraksi fitur wajah.
+- SCRFD: model deteksi wajah yang digunakan untuk menemukan lokasi wajah dalam frame gambar.
+- ArcFace: model embedding wajah yang digunakan untuk menghasilkan representasi numerik dari setiap wajah.
+- ONNX Runtime: runtime yang menjalankan model model ONNX secara efisien di lingkungan Python.
+
+Proses yang dilakukan model adalah:
+- Deteksi wajah pada frame citra menggunakan SCRFD.
+- Ekstraksi fitur wajah menjadi vector embedding menggunakan ArcFace.
+- Membandingkan embedding dengan template yang sudah tersimpan di database.
+- Menggunakan threshold similarity untuk menentukan apakah wajah cocok atau tidak.
+
+Embedding adalah representasi numerik dari ciri wajah yang unik. Semakin mirip dua wajah, semakin dekat nilai similarity antara embedding-nya. Dengan demikian, sistem dapat membandingkan wajah baru dengan wajah yang sudah terdaftar tanpa menyimpan foto asli secara lengkap. Model ini lebih aman dan lebih efisien karena data yang disimpan adalah vektor fitur, bukan gambar wajah mentah.
+
+4. Arsitektur Sistem
+Sistem terdiri dari beberapa komponen utama:
+- Frontend: antarmuka web untuk login, registrasi, dan pengenalan wajah.
+- Backend: API berbasis FastAPI untuk komunikasi dan autentikasi.
+- Database: penyimpanan data pengguna dan template wajah.
+- Model Face Recognition: InsightFace / ONNX untuk ekstraksi embedding wajah.
+- Service Quality Check: mengevaluasi kualitas gambar wajah agar registrasi lebih akurat.
+- WebSocket: digunakan untuk pengenalan wajah secara real-time dari kamera.
+
+5. Cara Kerja Sistem
+Sistem bekerja dalam dua tahapan utama: registrasi dan identifikasi.
+
+A. Proses Registrasi
+1. Admin masuk ke sistem melalui autentikasi.
+2. Admin membuka halaman registrasi wajah.
+3. Sistem menerima sampel wajah dari kamera atau upload file.
+4. Gambar diproses untuk mendeteksi wajah.
+5. Setiap sampel dievaluasi berdasarkan kualitas seperti blur, ukuran wajah, pencahayaan, dan orientasi.
+6. Sampel yang memenuhi kriteria akan diubah menjadi embedding dan disimpan dalam database.
+7. Data pengguna dan template wajah disimpan untuk keperluan identifikasi di masa depan.
+
+B. Proses Pengenalan Wajah
+1. Kamera mengambil frame video secara real-time.
+2. Sistem mendeteksi area wajah dalam frame tersebut.
+3. Model melakukan ekstraksi embedding dari wajah yang terdeteksi.
+4. Embedding dibandingkan dengan database template yang sudah tersimpan.
+5. Sistem menghitung kemiripan (similarity) menggunakan threshold tertentu.
+6. Hasil identifikasi ditampilkan sebagai user yang cocok, tidak cocok, atau status lain seperti tentative atau unknown.
+
+6. Penjelasan Detail Teknis
+Pada tahap registrasi, tidak semua frame langsung disimpan. Sistem menerapkan proses validasi kualitas agar embedding yang disimpan benar-benar representatif. Beberapa faktor kualitas yang diperhatikan meliputi:
+- Resolusi wajah yang terlalu kecil.
+- Gambar terlalu blur.
+- Pencahayaan terlalu gelap atau terlalu terang.
+- Sudut kepala terlalu ekstrem.
+- Wajah yang tidak terlihat jelas.
+
+Dengan adanya filtering ini, sistem dapat mengurangi kasus kesalahan identifikasi dan meningkatkan akurasi.
+
+Pada saat identifikasi, embedding dari wajah yang baru dibandingkan dengan embedding yang tersimpan. Jika skor kemiripan melebihi threshold, sistem menganggap wajah tersebut cocok dengan pengguna tertentu. Namun, jika skor masih rendah, wajah akan dianggap tidak dikenal atau belum terdaftar.
+
+Selain itu, sistem juga menggunakan mekanisme smoothing multi-frame untuk meningkatkan stabilitas hasil identifikasi. Artinya, keputusan akhir tidak hanya berdasarkan satu frame saja, tetapi berdasarkan beberapa frame berturut-turut. Hal ini membantu mengurangi keputusan yang salah akibat pergerakan wajah, perubahan ekspresi, atau noise pada frame.
+
+Model ini bekerja secara end-to-end dalam pipeline berikut:
+1. Input frame dari kamera atau file gambar.
+2. Preprocessing citra.
+3. Deteksi wajah menggunakan SCRFD.
+4. Ekstraksi embedding menggunakan ArcFace.
+5. Pencocokan embedding dengan template di database.
+6. Pengambilan keputusan berdasarkan threshold dan validasi kualitas.
+7. Output status identitas secara real-time.
+
+7. Fitur Utama
+- Login admin.
+- Registrasi pengguna baru.
+- Upload sampel wajah.
+- Capture gambar wajah dari kamera.
+- Validasi kualitas sampel wajah.
+- Pengelolaan database pengguna.
+- Pengenalan wajah secara real-time.
+- Dashboard yang menampilkan status sistem dan pengguna terdaftar.
+- Monitoring dan log sistem untuk pengelolaan data.
+
+8. Keunggulan Sistem
+- Menggunakan teknologi modern dalam bidang computer vision.
+- Data wajah disimpan dalam bentuk embedding, bukan foto mentah.
+- Proses identifikasi dapat dilakukan secara real-time.
+- Sistem memiliki validasi kualitas untuk menjaga akurasi.
+- Interface web membuat sistem mudah digunakan dan dapat diakses secara sederhana.
+- Kombinasi OpenCV, InsightFace, dan ONNX Runtime membuat pipeline pemrosesan lebih efisien dan handal.
+
+9. Tantangan yang Dihadapi
+- Kondisi pencahayaan yang tidak stabil.
+- Wajah yang mirip atau tampak sama.
+- Variasi pose, ekspresi, dan sudut pengambilan gambar.
+- Ukuran dan kualitas gambar yang bervariasi.
+- Kebutuhan threshold yang harus disesuaikan dengan lingkungan kerja.
+
+10. Kesimpulan
+Face Recognition System ini merupakan solusi berbasis computer vision yang dapat digunakan untuk autentikasi otomatis dan pengelolaan pengguna berbasis wajah. Sistem ini menggabungkan teknologi deteksi wajah, ekstraksi embedding, validasi kualitas, serta antarmuka berbasis web dalam satu ekosistem yang terintegrasi. Dengan model InsightFace dan pendekatan berbasis embedding, sistem memiliki potensi untuk dikembangkan lebih lanjut pada bidang absensi, keamanan, dan identifikasi digital.
+
+11. Penutup
+Dengan adanya sistem ini, proses registrasi dan pengenalan wajah menjadi lebih otomatis, cepat, dan efisien. Ke depan, sistem ini dapat dikembangkan lebih lanjut dengan penambahan fitur keamanan tambahan, peningkatan akurasi, serta integrasi dengan perangkat lain seperti kamera CCTV atau sistem absensi otomatis.
+
+7. Fitur Utama
+- Login admin.
+- Registrasi pengguna baru.
+- Upload sampel wajah.
+- Capture gambar wajah dari kamera.
+- Validasi kualitas sampel wajah.
+- Pengelolaan database pengguna.
+- Pengenalan wajah secara real-time.
+- Dashboard yang menampilkan status sistem dan pengguna terdaftar.
+- Monitoring dan log sistem untuk pengelolaan data.
+
+8. Keunggulan Sistem
+- Menggunakan teknologi modern dalam bidang computer vision.
+- Data wajah disimpan dalam bentuk embedding, bukan foto mentah.
+- Proses identifikasi dapat dilakukan secara real-time.
+- Sistem memiliki validasi kualitas untuk menjaga akurasi.
+- Interface web membuat sistem mudah digunakan dan dapat diakses secara sederhana.
+
+9. Tantangan yang Dihadapi
+- Kondisi pencahayaan yang tidak stabil.
+- Wajah yang mirip atau tampak sama.
+- Variasi pose, ekspresi, dan sudut pengambilan gambar.
+- Ukuran dan kualitas gambar yang bervariasi.
+- Kebutuhan threshold yang harus disesuaikan dengan lingkungan kerja.
+
+10. Kesimpulan
+Face Recognition System ini merupakan solusi berbasis computer vision yang dapat digunakan untuk autentikasi otomatis dan pengelolaan pengguna berbasis wajah. Sistem ini menggabungkan teknologi deteksi wajah, ekstraksi embedding, validasi kualitas, serta antarmuka berbasis web dalam satu ekosistem yang terintegrasi. Dengan model InsightFace dan pendekatan berbasis embedding, sistem memiliki potensi untuk dikembangkan lebih lanjut pada bidang absensi, keamanan, dan identifikasi digital.
+
+11. Penutup
+Dengan adanya sistem ini, proses registrasi dan pengenalan wajah menjadi lebih otomatis, cepat, dan efisien. Ke depan, sistem ini dapat dikembangkan lebih lanjut dengan penambahan fitur keamanan tambahan, peningkatan akurasi, serta integrasi dengan perangkat lain seperti kamera CCTV atau sistem absensi otomatis.
