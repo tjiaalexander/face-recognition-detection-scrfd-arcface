@@ -10,7 +10,8 @@ export function init() {
     timer = setTimeout(() => { search = e.target.value; page = 1; load(); }, 300);
   });
   $("#user-prev").addEventListener("click", () => { if (page > 1) { page--; load(); } });
-  $("#user-next").addEventListener("click", () => { if (page * PAGE_SIZE < total) { page++; load(); } });
+  $("#user-next").addEventListener("click", () => { if 
+    (page * PAGE_SIZE < total) { page++; load(); } });
 }
 export function onShow() { load(); }
 export function onHide() {}
